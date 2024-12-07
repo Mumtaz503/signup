@@ -6,10 +6,14 @@ export const connectToDatabase = async () => {
   if (isConnected) return;
 
   try {
-    const { connection } = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    console.log("Connecting to DB");
+    const { connection } = await mongoose.connect(
+      "mongodb+srv://btee88860:S0M0898d6XVW2OSY@cluster0.vndye.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      }
+    );
 
     isConnected = connection.readyState === 1;
     console.log("Connected to MongoDB");

@@ -1,3 +1,5 @@
+// src/pages/api/signup.js
+
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
 import { connectToDatabase } from "@/lib/db";
@@ -20,6 +22,7 @@ export default async function handler(req, res) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = new User({
       firstname,
       lastname,
@@ -30,6 +33,7 @@ export default async function handler(req, res) {
 
     res.status(201).json({ message: "Signup successful" });
   } catch (error) {
+    console.error("Error during signup:", error.message);
     res
       .status(500)
       .json({ message: "Error creating user", error: error.message });

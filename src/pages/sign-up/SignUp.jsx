@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -8,16 +9,23 @@ export default function SignupPage() {
     password: "",
   });
   const [message, setMessage] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/protected/ProtectedContent");
+    }
+  }, [router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    console.log("Form data changed"); // This will log the message to the console
+    console.log("Form data changed");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await fetch("/api/signup", {
         method: "POST",
@@ -28,6 +36,7 @@ export default function SignupPage() {
       const data = await response.json();
       if (response.ok) {
         setMessage("Signup successful! You can now log in.");
+        router.push("/login/Login");
       } else {
         setMessage(data.message || "An error occurred");
       }
