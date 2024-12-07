@@ -1,8 +1,26 @@
-// src/pages/api/signup.js
-
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
 import { connectToDatabase } from "@/lib/db";
+import axios from "axios";
+
+const ZEROBOUNCE_API_KEY = "cb05af058e4d4eccb4dbbb9fa613dda7";
+
+async function validateEmail(email) {
+  try {
+    const response = await axios.get("https://api.zerobounce.net/v2/validate", {
+      params: {
+        api_key: ZEROBOUNCE_API_KEY,
+        email,
+      },
+    });
+
+    const { status } = response.data;
+    return status === "valid";
+  } catch (error) {
+    console.error("Error validating email with ZeroBounce:", error.message);
+    return false;
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -13,6 +31,13 @@ export default async function handler(req, res) {
 
   try {
     await connectToDatabase();
+
+    const isEmailValid = await validateEmail(email);
+    if (!isEmailValid) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or undeliverable email address." });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
