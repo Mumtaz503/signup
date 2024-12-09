@@ -2,8 +2,18 @@ import bcrypt from "bcryptjs";
 import User from "@/models/User";
 import { connectToDatabase } from "@/lib/db";
 import axios from "axios";
+import client, { connectRedis } from "@/lib/redis";
+import nodemailer from "nodemailer";
 
 const ZEROBOUNCE_API_KEY = "cb05af058e4d4eccb4dbbb9fa613dda7";
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "btee88860@gmail.com",
+    pass: "mpxo dusx siak gntb ",
+  },
+});
 
 async function validateEmail(email) {
   try {
@@ -13,9 +23,7 @@ async function validateEmail(email) {
         email,
       },
     });
-
-    const { status } = response.data;
-    return status === "valid";
+    return response.data.status === "valid";
   } catch (error) {
     console.error("Error validating email with ZeroBounce:", error.message);
     return false;
@@ -31,6 +39,7 @@ export default async function handler(req, res) {
 
   try {
     await connectToDatabase();
+    await connectRedis();
 
     const isEmailValid = await validateEmail(email);
     if (!isEmailValid) {
@@ -46,21 +55,44 @@ export default async function handler(req, res) {
         .json({ message: "User already exists with this email" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const existing = await client.get(email);
+    if (existing) {
+      return res
+        .status(400)
+        .json({ message: "Email verification already in progress." });
+    }
 
-    const newUser = new User({
-      firstname,
-      lastname,
+    const verificationCode = Math.floor(100000 + Math.random() * 900000);
+
+    await client.set(
       email,
-      password: hashedPassword,
-    });
-    await newUser.save();
+      JSON.stringify({
+        firstname,
+        lastname,
+        email,
+        password: await bcrypt.hash(password, 10),
+        verificationCode,
+      }),
+      { EX: 600 }
+    );
 
-    res.status(201).json({ message: "Signup successful" });
+    try {
+      await transporter.sendMail({
+        from: "btee88860@gmail.com",
+        to: email,
+        subject: "Email Verification Code",
+        text: `Your verification code is: ${verificationCode}`,
+      });
+      console.log("Email sent successfully");
+    } catch (error) {
+      console.error("Error sending email from /api/signup:", error.message);
+      res.status(500).json({ message: "Failed to send verification email." });
+      return;
+    }
+
+    res.status(200).json({ message: "Verification email sent." });
   } catch (error) {
     console.error("Error during signup:", error.message);
-    res
-      .status(500)
-      .json({ message: "Error creating user", error: error.message });
+    res.status(500).json({ message: "Internal server error." });
   }
 }

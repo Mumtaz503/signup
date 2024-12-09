@@ -16,6 +16,23 @@ export default function SignupPage() {
     if (token) {
       router.push("/protected/ProtectedContent");
     }
+    const checkVerificationStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/verify-status?email=${formData.email}`
+        );
+        const data = await response.json();
+        if (data.exists) {
+          setShowVerifyPage(true);
+        }
+      } catch (error) {
+        console.error("Error checking verification status:", error.message);
+      }
+    };
+
+    if (formData.email) {
+      checkVerificationStatus();
+    }
   }, [router]);
 
   const handleChange = (e) => {
@@ -35,8 +52,13 @@ export default function SignupPage() {
 
       const data = await response.json();
       if (response.ok) {
-        setMessage("Signup successful! You can now log in.");
-        router.push("/login/Login");
+        setMessage(
+          "Signup successful! Check your email for the verification code."
+        );
+        router.push({
+          pathname: "/verification/Verify",
+          query: { email: formData.email },
+        });
       } else {
         setMessage(data.message || "An error occurred");
       }

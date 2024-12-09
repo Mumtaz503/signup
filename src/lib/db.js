@@ -8,11 +8,7 @@ export const connectToDatabase = async () => {
   try {
     console.log("Connecting to DB");
     const { connection } = await mongoose.connect(
-      "mongodb+srv://btee88860:S0M0898d6XVW2OSY@cluster0.vndye.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      }
+      "mongodb+srv://btee88860:S0M0898d6XVW2OSY@cluster0.vndye.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
     );
 
     isConnected = connection.readyState === 1;
