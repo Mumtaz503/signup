@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+//A basic user schema to be saved in mongodb
 const userSchema = new mongoose.Schema({
   firstname: { type: String, required: true },
   lastname: { type: String, required: true },

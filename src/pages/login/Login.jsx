@@ -6,6 +6,7 @@ const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
+  //Redirects the user to the protected page if their token is in the browser storage
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -22,6 +23,7 @@ const LoginPage = () => {
     e.preventDefault();
 
     try {
+      //Calls the login API to generate JWT
       const res = await fetch("/api/login", {
         method: "POST",
         headers: {
@@ -29,7 +31,7 @@ const LoginPage = () => {
         },
         body: JSON.stringify(formData),
       });
-
+      //Redirect the user to the protected page if the response is okay
       if (res.ok) {
         const data = await res.json();
         localStorage.setItem("token", data.token);

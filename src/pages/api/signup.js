@@ -5,8 +5,10 @@ import axios from "axios";
 import client, { connectRedis } from "@/lib/redis";
 import nodemailer from "nodemailer";
 
+//Your zerobounce API key
 const ZEROBOUNCE_API_KEY = "cb05af058e4d4eccb4dbbb9fa613dda7";
 
+//Setup nodemailer to send emails
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -15,6 +17,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+//Function that checks and validates the email input by the user
 async function validateEmail(email) {
   try {
     const response = await axios.get("https://api.zerobounce.net/v2/validate", {
@@ -41,6 +44,7 @@ export default async function handler(req, res) {
     await connectToDatabase();
     await connectRedis();
 
+    //Validates the email input
     const isEmailValid = await validateEmail(email);
     if (!isEmailValid) {
       return res
@@ -48,6 +52,7 @@ export default async function handler(req, res) {
         .json({ message: "Invalid or undeliverable email address." });
     }
 
+    //Checks if the email is already in the database
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
@@ -55,6 +60,7 @@ export default async function handler(req, res) {
         .json({ message: "User already exists with this email" });
     }
 
+    //Checks if an email is already in pending verification
     const existing = await client.get(email);
     if (existing) {
       return res
@@ -62,8 +68,10 @@ export default async function handler(req, res) {
         .json({ message: "Email verification already in progress." });
     }
 
+    //Generate a random 6 digit code
     const verificationCode = Math.floor(100000 + Math.random() * 900000);
 
+    //Set the credentials of the user for redis
     await client.set(
       email,
       JSON.stringify({
@@ -76,6 +84,7 @@ export default async function handler(req, res) {
       { EX: 600 }
     );
 
+    //Send a mail to the user's email address
     try {
       await transporter.sendMail({
         from: "btee88860@gmail.com",

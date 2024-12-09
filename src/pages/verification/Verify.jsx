@@ -7,6 +7,7 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const { email } = router.query;
 
+  //Redirect the user to the protected page if the email if the token is present in the browser
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -17,12 +18,13 @@ export default function VerifyEmailPage() {
   const handleVerify = async (e) => {
     e.preventDefault();
     try {
+      //Make a call to the verify API
       const response = await fetch("/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, verificationCode }),
       });
-
+      //Once verification is complete the user is redirected to the login page
       const data = await response.json();
       if (response.ok) {
         setMessage("Email verified successfully! Redirecting to login...");

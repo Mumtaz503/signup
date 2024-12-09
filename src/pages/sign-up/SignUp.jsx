@@ -11,11 +11,13 @@ export default function SignupPage() {
   const [message, setMessage] = useState("");
   const router = useRouter();
 
+  //If a JWT is generated against a user's email then the user is redirected the protected page by default
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       router.push("/protected/ProtectedContent");
     }
+    //Redirects the user to the email verification page if their verification is pending
     const checkVerificationStatus = async () => {
       try {
         const response = await fetch(
@@ -33,7 +35,7 @@ export default function SignupPage() {
     if (formData.email) {
       checkVerificationStatus();
     }
-  }, [router]);
+  }, [formData.email, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +43,7 @@ export default function SignupPage() {
     console.log("Form data changed");
   };
 
+  //Calls the sign-up API
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -55,6 +58,7 @@ export default function SignupPage() {
         setMessage(
           "Signup successful! Check your email for the verification code."
         );
+        //Redirects the user to the verification page if an email is sent to their provided address
         router.push({
           pathname: "/verification/Verify",
           query: { email: formData.email },

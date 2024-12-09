@@ -7,11 +7,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
+  //Fetch the email and the verification code for the user.
   const { email, verificationCode } = req.body;
 
   try {
     await connectRedis();
     await connectToDatabase();
+    //Check if the email is in pending verification object
     const tempUser = await client.get(email);
     if (!tempUser) {
       return res.status(400).json({ message: "Verification code expired." });
@@ -32,6 +34,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: "Invalid verification code." });
     }
 
+    //If the user verifies the code given to them save the info in the database
     const newUser = new User({
       firstname: storedData.firstname,
       lastname: storedData.lastname,

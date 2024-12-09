@@ -5,6 +5,7 @@ let isConnected = false;
 export const connectToDatabase = async () => {
   if (isConnected) return;
 
+  //Make a connection to Mongodb with your private string
   try {
     console.log("Connecting to DB");
     const { connection } = await mongoose.connect(

@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 const ProtectedPage = () => {
   const router = useRouter();
 
+  //Only allows the users to view the protected page if their token is generated
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {

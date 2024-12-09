@@ -9,17 +9,20 @@ export default async (req, res) => {
     const { email, password } = req.body;
 
     try {
+      //Conncect to database and find user's email
       await connectToDatabase();
       const user = await userSchema.findOne({ email });
       if (!user) {
         return res.status(400).json({ message: "Invalid email or password" });
       }
 
+      //Check password
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         return res.status(400).json({ message: "Invalid email or password" });
       }
 
+      //Create a JWT
       const token = jwt.sign({ email }, "thisIsAPassword", {
         expiresIn: "1h",
       });
